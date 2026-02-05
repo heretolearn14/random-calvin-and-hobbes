@@ -1,0 +1,23 @@
+{
+  "name": "random-calvin-and-hobbes",
+  "version": "1.0.0",
+  "description": "A web application that serves random Calvin and Hobbes quotes",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test 'src/tests/**/*.test.js'",
+    "lint": "eslint src/"
+  },
+  "keywords": ["calvin", "hobbes", "quotes", "random"],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
