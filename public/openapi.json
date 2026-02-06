@@ -1,0 +1,414 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Random Calvin and Hobbes API",
+    "description": "An API serving random Calvin and Hobbes quotes with search, filtering, pagination, and multiple response formats.",
+    "version": "1.0.0",
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "Current server"
+    }
+  ],
+  "paths": {
+    "/quotes/random": {
+      "get": {
+        "summary": "Get a random quote",
+        "tags": ["Quotes"],
+        "parameters": [
+          { "$ref": "#/components/parameters/format" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A random quote",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Quote" }
+              },
+              "text/plain": {
+                "schema": { "type": "string" }
+              },
+              "text/markdown": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quotes/daily": {
+      "get": {
+        "summary": "Get the quote of the day",
+        "description": "Returns a deterministic quote that stays the same for all users throughout a calendar day.",
+        "tags": ["Quotes"],
+        "parameters": [
+          { "$ref": "#/components/parameters/format" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The daily quote",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Quote" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quotes/search": {
+      "get": {
+        "summary": "Search quotes",
+        "description": "Full-text search across quote text and character names.",
+        "tags": ["Quotes"],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "description": "Search term (1-200 characters)",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            }
+          },
+          { "$ref": "#/components/parameters/format" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Matching quotes",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/QuoteList" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid search query",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quotes/tags": {
+      "get": {
+        "summary": "List all available tags",
+        "tags": ["Tags"],
+        "responses": {
+          "200": {
+            "description": "List of tags",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tags": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quotes/pending": {
+      "get": {
+        "summary": "List pending quote submissions",
+        "tags": ["Submissions"],
+        "responses": {
+          "200": {
+            "description": "Pending quotes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": { "type": "integer" },
+                    "quotes": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/PendingQuote" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quotes": {
+      "get": {
+        "summary": "List quotes with filtering and pagination",
+        "tags": ["Quotes"],
+        "parameters": [
+          {
+            "name": "character",
+            "in": "query",
+            "description": "Filter by character name",
+            "schema": {
+              "type": "string",
+              "enum": ["Calvin", "Hobbes"]
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "Filter by tag",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Quote ID to start after (for cursor pagination)",
+            "schema": { "type": "integer" }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Max number of quotes to return",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          { "$ref": "#/components/parameters/format" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of quotes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/QuoteList" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "next_cursor": {
+                          "type": "integer",
+                          "nullable": true,
+                          "description": "Pass as cursor param to get next page. Null if no more results."
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Submit a new quote for moderation",
+        "tags": ["Submissions"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["quote", "character"],
+                "properties": {
+                  "quote": {
+                    "type": "string",
+                    "minLength": 5,
+                    "maxLength": 500
+                  },
+                  "character": {
+                    "type": "string",
+                    "description": "Allowed: Calvin, Hobbes, Susie, Mom, Dad, Miss Wormwood, Rosalyn, Moe"
+                  },
+                  "source": {
+                    "type": "string",
+                    "maxLength": 200
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Quote submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "submission": { "$ref": "#/components/schemas/PendingQuote" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quotes/{id}": {
+      "get": {
+        "summary": "Get a quote by ID",
+        "tags": ["Quotes"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer", "minimum": 1 }
+          },
+          { "$ref": "#/components/parameters/format" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The quote",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Quote" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          },
+          "404": {
+            "description": "Quote not found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/widget": {
+      "get": {
+        "summary": "Get embeddable quote widget",
+        "description": "Returns a self-contained HTML page with a random quote, suitable for iframe embedding.",
+        "tags": ["Widget"],
+        "responses": {
+          "200": {
+            "description": "HTML widget",
+            "content": {
+              "text/html": {
+                "schema": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "ok" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "format": {
+        "name": "format",
+        "in": "query",
+        "description": "Response format",
+        "schema": {
+          "type": "string",
+          "enum": ["json", "text", "markdown"],
+          "default": "json"
+        }
+      }
+    },
+    "schemas": {
+      "Quote": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "quote": { "type": "string" },
+          "character": { "type": "string" },
+          "context": { "type": "string" },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      },
+      "QuoteList": {
+        "type": "object",
+        "properties": {
+          "count": { "type": "integer" },
+          "quotes": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Quote" }
+          }
+        }
+      },
+      "PendingQuote": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer" },
+          "quote": { "type": "string" },
+          "character": { "type": "string" },
+          "source": { "type": "string" },
+          "status": { "type": "string", "example": "pending" },
+          "submitted_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -3,6 +3,8 @@ const path = require('path');
 const { securityHeaders, createRateLimiter, inputSanitizer } = require('./middleware/security');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const quotesRouter = require('./routes/quotes');
+const shareRouter = require('./routes/share');
+const widgetRouter = require('./routes/widget');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -29,6 +31,15 @@ app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'deny' 
 
 // API routes
 app.use('/api/quotes', quotesRouter);
+app.use('/api/widget', widgetRouter);
+
+// Share page (HTML with OG tags)
+app.use('/quote', shareRouter);
+
+// API docs redirect
+app.get('/api/docs', (req, res) => {
+  res.redirect('/docs.html');
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

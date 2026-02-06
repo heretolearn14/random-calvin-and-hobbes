@@ -8,12 +8,54 @@
 </head>
 <body>
   <div class="container">
-    <h1>Random Calvin &amp; Hobbes Quotes</h1>
+    <header class="header">
+      <h1>Random Calvin &amp; Hobbes Quotes</h1>
+      <nav class="nav-links">
+        <a href="/docs.html">API Docs</a>
+        <button id="theme-toggle" type="button" class="icon-btn" title="Toggle dark mode (D)">
+          <span id="theme-icon">&#9789;</span>
+        </button>
+      </nav>
+    </header>
+
     <div id="quote-card" class="quote-card">
       <blockquote id="quote-text">Click the button to get a random quote!</blockquote>
       <p id="quote-character" class="character"></p>
+      <div id="quote-tags" class="tags"></div>
     </div>
-    <button id="random-btn" type="button">Get Random Quote</button>
+
+    <div class="actions">
+      <button id="random-btn" type="button" title="Get random quote (Space)">Get Random Quote</button>
+      <button id="daily-btn" type="button" class="btn-secondary" title="Quote of the Day">Quote of the Day</button>
+      <button id="fav-btn" type="button" class="btn-secondary icon-btn" title="Favorite this quote (F)">&#9825;</button>
+      <button id="share-btn" type="button" class="btn-secondary icon-btn" title="Share this quote (S)">&#128279;</button>
+    </div>
+
+    <div class="search-bar">
+      <input id="search-input" type="text" placeholder="Search quotes... (press /)" maxlength="200" aria-label="Search quotes">
+      <button id="search-btn" type="button">Search</button>
+    </div>
+
+    <div id="search-results" class="search-results" hidden></div>
+
+    <div id="favorites-section" class="favorites-section" hidden>
+      <h2>Your Favorites</h2>
+      <div id="favorites-list" class="favorites-list"></div>
+      <button id="show-fav-btn" type="button" class="btn-secondary">Show Favorites</button>
+    </div>
+
+    <footer class="footer">
+      <p>
+        Press <kbd>Space</kbd> for random &middot;
+        <kbd>F</kbd> favorite &middot;
+        <kbd>S</kbd> share &middot;
+        <kbd>D</kbd> dark mode &middot;
+        <kbd>/</kbd> search
+      </p>
+      <p class="embed-info">
+        Embed a quote: <code>&lt;iframe src="/api/widget" width="500" height="200"&gt;&lt;/iframe&gt;</code>
+      </p>
+    </footer>
   </div>
   <script src="/app.js"></script>
 </body>
