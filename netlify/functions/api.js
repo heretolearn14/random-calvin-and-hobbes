@@ -28,4 +28,6 @@ app.use('/quote', shareRouter);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-module.exports.handler = serverless(app);
+module.exports.handler = serverless(app, {
+  basePath: '/.netlify/functions/api',
+});
