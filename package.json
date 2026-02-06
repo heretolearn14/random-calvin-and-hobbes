@@ -7,12 +7,19 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "node --test 'src/tests/**/*.test.js'",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "dev:netlify": "npx netlify dev"
   },
-  "keywords": ["calvin", "hobbes", "quotes", "random"],
+  "keywords": [
+    "calvin",
+    "hobbes",
+    "quotes",
+    "random"
+  ],
   "license": "MIT",
   "dependencies": {
-    "express": "^4.21.0"
+    "express": "^4.21.0",
+    "serverless-http": "^4.0.0"
   },
   "devDependencies": {
     "eslint": "^8.57.0"
