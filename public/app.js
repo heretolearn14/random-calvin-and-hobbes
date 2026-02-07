@@ -2,9 +2,10 @@
   'use strict';
 
   // DOM elements
-  var quoteText = document.getElementById('quote-text');
-  var quoteCharacter = document.getElementById('quote-character');
-  var quoteTags = document.getElementById('quote-tags');
+  var stripImg = document.getElementById('strip-img');
+  var stripDate = document.getElementById('strip-date');
+  var stripLoading = document.getElementById('strip-loading');
+  var stripError = document.getElementById('strip-error');
   var randomBtn = document.getElementById('random-btn');
   var dailyBtn = document.getElementById('daily-btn');
   var favBtn = document.getElementById('fav-btn');
@@ -19,10 +20,10 @@
   var themeIcon = document.getElementById('theme-icon');
 
   // State
-  var currentQuote = null;
+  var currentStrip = null;
 
   // =====================
-  // Dark Mode (Feature 10)
+  // Dark Mode
   // =====================
 
   function getStoredTheme() {
@@ -42,7 +43,6 @@
     setTheme(isDark ? 'light' : 'dark');
   }
 
-  // Initialize theme
   var storedTheme = getStoredTheme();
   if (storedTheme) {
     setTheme(storedTheme);
@@ -53,12 +53,12 @@
   themeToggle.addEventListener('click', toggleTheme);
 
   // =====================
-  // Favorites (Feature 3)
+  // Favorites
   // =====================
 
   function getFavorites() {
     try {
-      var data = localStorage.getItem('favorites');
+      var data = localStorage.getItem('fav_strips');
       return data ? JSON.parse(data) : [];
     } catch (e) {
       return [];
@@ -66,16 +66,16 @@
   }
 
   function saveFavorites(favs) {
-    try { localStorage.setItem('favorites', JSON.stringify(favs)); } catch (e) { /* noop */ }
+    try { localStorage.setItem('fav_strips', JSON.stringify(favs)); } catch (e) { /* noop */ }
   }
 
-  function isFavorited(id) {
-    return getFavorites().some(function (f) { return f.id === id; });
+  function isFavorited(date) {
+    return getFavorites().some(function (f) { return f.date === date; });
   }
 
   function updateFavButton() {
-    if (!currentQuote) return;
-    if (isFavorited(currentQuote.id)) {
+    if (!currentStrip) return;
+    if (isFavorited(currentStrip.date)) {
       favBtn.innerHTML = '&#9829;';
       favBtn.classList.add('active');
     } else {
@@ -85,16 +85,17 @@
   }
 
   function toggleFavorite() {
-    if (!currentQuote) return;
+    if (!currentStrip) return;
     var favs = getFavorites();
-    var idx = favs.findIndex(function (f) { return f.id === currentQuote.id; });
+    var idx = favs.findIndex(function (f) { return f.date === currentStrip.date; });
     if (idx >= 0) {
       favs.splice(idx, 1);
     } else {
       favs.push({
-        id: currentQuote.id,
-        quote: currentQuote.quote,
-        character: currentQuote.character
+        date: currentStrip.date,
+        dateDisplay: currentStrip.dateDisplay,
+        imageUrl: currentStrip.imageUrl,
+        goComicsUrl: currentStrip.goComicsUrl
       });
     }
     saveFavorites(favs);
@@ -115,21 +116,24 @@
     favs.forEach(function (fav) {
       var item = document.createElement('div');
       item.className = 'fav-item';
+      item.style.cursor = 'pointer';
 
       var textDiv = document.createElement('div');
       textDiv.className = 'fav-item-text';
-      textDiv.textContent = '"' + fav.quote + '"';
-      var charSpan = document.createElement('div');
-      charSpan.className = 'fav-item-char';
-      charSpan.textContent = '\u2014 ' + fav.character;
-      textDiv.appendChild(charSpan);
+      textDiv.style.fontStyle = 'normal';
+      textDiv.textContent = fav.dateDisplay;
+      textDiv.addEventListener('click', function () {
+        displayStrip(fav);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
 
       var removeBtn = document.createElement('button');
       removeBtn.className = 'fav-remove';
       removeBtn.innerHTML = '&times;';
       removeBtn.title = 'Remove from favorites';
-      removeBtn.addEventListener('click', function () {
-        var updated = getFavorites().filter(function (f) { return f.id !== fav.id; });
+      removeBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var updated = getFavorites().filter(function (f) { return f.date !== fav.date; });
         saveFavorites(updated);
         renderFavorites();
         updateFavButton();
@@ -151,43 +155,41 @@
   });
 
   // =====================
-  // Quote display
+  // Strip display
   // =====================
 
-  function displayQuote(data) {
-    currentQuote = data;
-    quoteText.textContent = data.quote;
-    quoteCharacter.textContent = '\u2014 ' + data.character;
-
-    quoteTags.innerHTML = '';
-    if (data.tags && data.tags.length) {
-      data.tags.forEach(function (tag) {
-        var span = document.createElement('span');
-        span.className = 'tag';
-        span.textContent = tag;
-        quoteTags.appendChild(span);
-      });
-    }
-
+  function displayStrip(data) {
+    currentStrip = data;
+    stripLoading.hidden = true;
+    stripError.hidden = true;
+    stripImg.hidden = false;
+    stripImg.src = data.imageUrl;
+    stripImg.alt = 'Calvin and Hobbes - ' + data.dateDisplay;
+    stripDate.innerHTML = '<a href="' + data.goComicsUrl + '" target="_blank" rel="noopener">' +
+      data.dateDisplay + '</a>';
     updateFavButton();
   }
 
-  function fetchQuote(url) {
+  function fetchStrip(url) {
     randomBtn.disabled = true;
     dailyBtn.disabled = true;
+    stripLoading.hidden = false;
+    stripImg.hidden = true;
+    stripError.hidden = true;
+    stripDate.textContent = '';
 
     fetch(url)
       .then(function (response) {
-        if (!response.ok) throw new Error('Failed to fetch quote');
+        if (!response.ok) throw new Error('Failed to fetch strip');
         return response.json();
       })
       .then(function (data) {
-        displayQuote(data);
+        displayStrip(data);
       })
       .catch(function () {
-        quoteText.textContent = 'Failed to load quote. Please try again.';
-        quoteCharacter.textContent = '';
-        quoteTags.innerHTML = '';
+        stripLoading.hidden = true;
+        stripError.hidden = false;
+        stripError.textContent = 'Failed to load comic strip. Please try again.';
       })
       .finally(function () {
         randomBtn.disabled = false;
@@ -195,28 +197,27 @@
       });
   }
 
-  function fetchRandomQuote() {
-    fetchQuote('/api/quotes/random');
+  function fetchRandomStrip() {
+    fetchStrip('/api/strips/random');
   }
 
-  function fetchDailyQuote() {
-    fetchQuote('/api/quotes/daily');
+  function fetchDailyStrip() {
+    fetchStrip('/api/strips/daily');
   }
 
-  randomBtn.addEventListener('click', fetchRandomQuote);
-  dailyBtn.addEventListener('click', fetchDailyQuote);
+  randomBtn.addEventListener('click', fetchRandomStrip);
+  dailyBtn.addEventListener('click', fetchDailyStrip);
 
   // =====================
-  // Share (Feature 4)
+  // Share
   // =====================
 
   shareBtn.addEventListener('click', function () {
-    if (!currentQuote) return;
-    var url = window.location.origin + '/quote/' + currentQuote.id;
+    if (!currentStrip) return;
+    var url = currentStrip.goComicsUrl;
     if (navigator.share) {
       navigator.share({
-        title: 'Calvin & Hobbes Quote',
-        text: '"' + currentQuote.quote + '" \u2014 ' + currentQuote.character,
+        title: 'Calvin & Hobbes - ' + currentStrip.dateDisplay,
         url: url
       }).catch(function () { /* user cancelled */ });
     } else {
@@ -229,7 +230,7 @@
   });
 
   // =====================
-  // Search (Feature 2)
+  // Search (quotes)
   // =====================
 
   function performSearch() {
@@ -257,12 +258,6 @@
         data.quotes.forEach(function (quote) {
           var item = document.createElement('div');
           item.className = 'search-result-item';
-          item.addEventListener('click', function () {
-            displayQuote(quote);
-            searchResults.hidden = true;
-            searchInput.value = '';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          });
 
           var qDiv = document.createElement('div');
           qDiv.className = 'result-quote';
@@ -292,11 +287,10 @@
   });
 
   // =====================
-  // Keyboard Shortcuts (Feature 11)
+  // Keyboard Shortcuts
   // =====================
 
   document.addEventListener('keydown', function (e) {
-    // Ignore if user is typing in an input
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
       if (e.key === 'Escape') {
         e.target.blur();
@@ -307,7 +301,7 @@
     switch (e.key) {
       case ' ':
         e.preventDefault();
-        fetchRandomQuote();
+        fetchRandomStrip();
         break;
       case 'f':
       case 'F':
@@ -336,5 +330,5 @@
   // =====================
 
   renderFavorites();
-  fetchRandomQuote();
+  fetchRandomStrip();
 })();

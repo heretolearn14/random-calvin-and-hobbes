@@ -43,8 +43,8 @@ body {
 }
 
 .container {
-  max-width: 640px;
-  width: 100%;
+  max-width: 800px;
+  width: 95%;
   text-align: center;
 }
 
@@ -87,6 +87,52 @@ body {
   flex-direction: column;
   justify-content: center;
   transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.strip-card {
+  background: var(--bg-card);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 12px var(--shadow);
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.strip-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.strip-date {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.strip-date a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.strip-date a:hover {
+  text-decoration: underline;
+}
+
+.strip-loading {
+  padding: 3rem 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.strip-error {
+  color: var(--accent);
+  padding: 2rem 0;
 }
 
 blockquote {

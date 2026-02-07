@@ -3,6 +3,7 @@ const path = require('path');
 const { securityHeaders, createRateLimiter, inputSanitizer } = require('./middleware/security');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const quotesRouter = require('./routes/quotes');
+const stripsRouter = require('./routes/strips');
 const shareRouter = require('./routes/share');
 const widgetRouter = require('./routes/widget');
 
@@ -31,6 +32,7 @@ app.use(express.static(path.join(__dirname, '..', 'public'), { dotfiles: 'deny' 
 
 // API routes
 app.use('/api/quotes', quotesRouter);
+app.use('/api/strips', stripsRouter);
 app.use('/api/widget', widgetRouter);
 
 // Share page (HTML with OG tags)

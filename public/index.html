@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Random Calvin and Hobbes Quotes</title>
+  <title>Random Calvin and Hobbes</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <div class="container">
     <header class="header">
-      <h1>Random Calvin &amp; Hobbes Quotes</h1>
+      <h1>Random Calvin &amp; Hobbes</h1>
       <nav class="nav-links">
         <a href="/docs.html">API Docs</a>
         <button id="theme-toggle" type="button" class="icon-btn" title="Toggle dark mode (D)">
@@ -18,17 +18,18 @@
       </nav>
     </header>
 
-    <div id="quote-card" class="quote-card">
-      <blockquote id="quote-text">Click the button to get a random quote!</blockquote>
-      <p id="quote-character" class="character"></p>
-      <div id="quote-tags" class="tags"></div>
+    <div id="strip-card" class="strip-card">
+      <div id="strip-loading" class="strip-loading">Loading comic strip...</div>
+      <img id="strip-img" class="strip-img" alt="Calvin and Hobbes comic strip" hidden>
+      <p id="strip-date" class="strip-date"></p>
+      <p id="strip-error" class="strip-error" hidden></p>
     </div>
 
     <div class="actions">
-      <button id="random-btn" type="button" title="Get random quote (Space)">Get Random Quote</button>
-      <button id="daily-btn" type="button" class="btn-secondary" title="Quote of the Day">Quote of the Day</button>
-      <button id="fav-btn" type="button" class="btn-secondary icon-btn" title="Favorite this quote (F)">&#9825;</button>
-      <button id="share-btn" type="button" class="btn-secondary icon-btn" title="Share this quote (S)">&#128279;</button>
+      <button id="random-btn" type="button" title="Random strip (Space)">Random Strip</button>
+      <button id="daily-btn" type="button" class="btn-secondary" title="Strip of the Day">Strip of the Day</button>
+      <button id="fav-btn" type="button" class="btn-secondary icon-btn" title="Favorite (F)">&#9825;</button>
+      <button id="share-btn" type="button" class="btn-secondary icon-btn" title="Share (S)">&#128279;</button>
     </div>
 
     <div class="search-bar">
@@ -53,7 +54,7 @@
         <kbd>/</kbd> search
       </p>
       <p class="embed-info">
-        Embed a quote: <code>&lt;iframe src="/api/widget" width="500" height="200"&gt;&lt;/iframe&gt;</code>
+        Embed: <code>&lt;iframe src="/api/widget" width="500" height="200"&gt;&lt;/iframe&gt;</code>
       </p>
     </footer>
   </div>
