@@ -42,6 +42,40 @@ function formatDateDisplay(date) {
   });
 }
 
+function cacheImage(datePath, imageUrl) {
+  if (cache.size >= MAX_CACHE) {
+    const firstKey = cache.keys().next().value;
+    cache.delete(firstKey);
+  }
+  cache.set(datePath, imageUrl);
+}
+
+function extractImageUrl(html) {
+  // Try og:image (both attribute orders)
+  const ogMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/i)
+    || html.match(/<meta\s+content="([^"]+)"\s+property="og:image"/i);
+  if (ogMatch) return ogMatch[1];
+
+  // Try twitter:image
+  const twitterMatch = html.match(/<meta\s+(?:name|property)="twitter:image"\s+content="([^"]+)"/i)
+    || html.match(/<meta\s+content="([^"]+)"\s+(?:name|property)="twitter:image"/i);
+  if (twitterMatch) return twitterMatch[1];
+
+  // Try item-comic-image class
+  const imgMatch = html.match(/<img[^>]+class="[^"]*item-comic-image[^"]*"[^>]+src="([^"]+)"/i);
+  if (imgMatch) return imgMatch[1];
+
+  // Try comic__image class
+  const comicMatch = html.match(/<img[^>]+class="[^"]*comic__image[^"]*"[^>]+src="([^"]+)"/i);
+  if (comicMatch) return comicMatch[1];
+
+  // Try any amuniversal.com image URL in the page
+  const amuMatch = html.match(/https:\/\/assets\.amuniversal\.com\/[a-f0-9]+/i);
+  if (amuMatch) return amuMatch[0];
+
+  return null;
+}
+
 async function fetchStripImage(date) {
   const datePath = formatDatePath(date);
 
@@ -57,9 +91,12 @@ async function fetchStripImage(date) {
   try {
     response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; CalvinHobbesQuoteApp/1.0)',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
       },
       signal: controller.signal,
+      redirect: 'follow',
     });
   } catch (err) {
     clearTimeout(timeoutId);
@@ -72,28 +109,13 @@ async function fetchStripImage(date) {
   }
 
   const html = await response.text();
+  const imageUrl = extractImageUrl(html);
 
-  // Extract comic image from og:image meta tag
-  const ogMatch = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
-  if (ogMatch) {
-    const imageUrl = ogMatch[1];
-    if (cache.size >= MAX_CACHE) {
-      const firstKey = cache.keys().next().value;
-      cache.delete(firstKey);
-    }
-    cache.set(datePath, imageUrl);
-    return imageUrl;
+  if (imageUrl) {
+    cacheImage(datePath, imageUrl);
   }
 
-  // Fallback: look for item-comic-image img src
-  const imgMatch = html.match(/<img[^>]+class="[^"]*item-comic-image[^"]*"[^>]+src="([^"]+)"/);
-  if (imgMatch) {
-    const imageUrl = imgMatch[1];
-    cache.set(datePath, imageUrl);
-    return imageUrl;
-  }
-
-  return null;
+  return imageUrl;
 }
 
 /**
@@ -141,6 +163,48 @@ router.get('/daily', async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+});
+
+/**
+ * GET /api/strips/debug
+ * Debug endpoint to check GoComics connectivity.
+ */
+router.get('/debug', async (req, res) => {
+  const date = new Date('1990-01-15T00:00:00Z');
+  const datePath = formatDatePath(date);
+  const url = `https://www.gocomics.com/calvinandhobbes/${datePath}`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+      signal: controller.signal,
+      redirect: 'follow',
+    });
+    clearTimeout(timeoutId);
+
+    const html = await response.text();
+    const imageUrl = extractImageUrl(html);
+
+    res.json({
+      gocomicsStatus: response.status,
+      htmlLength: html.length,
+      imageFound: !!imageUrl,
+      imageUrl: imageUrl || 'NOT FOUND',
+      htmlSnippet: html.substring(0, 500),
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    res.json({
+      error: err.message,
+      type: err.name,
+    });
   }
 });
 
