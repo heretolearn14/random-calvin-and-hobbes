@@ -50,11 +50,22 @@ async function fetchStripImage(date) {
   }
 
   const url = `https://www.gocomics.com/calvinandhobbes/${datePath}`;
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; CalvinHobbesQuoteApp/1.0)',
-    },
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; CalvinHobbesQuoteApp/1.0)',
+      },
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    return null;
+  }
+  clearTimeout(timeoutId);
 
   if (!response.ok) {
     return null;

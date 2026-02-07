@@ -168,7 +168,7 @@
   }
 
   function fetchStrip(url, retries) {
-    if (retries === undefined) retries = 2;
+    if (retries === undefined) retries = 3;
     randomBtn.disabled = true;
     dailyBtn.disabled = true;
     stripLoading.hidden = false;
@@ -176,24 +176,29 @@
     stripError.hidden = true;
     stripDate.textContent = '';
 
-    fetch(url)
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function () { controller.abort(); }, 10000);
+
+    fetch(url, { signal: controller.signal })
       .then(function (response) {
+        clearTimeout(timeoutId);
         if (!response.ok) throw new Error('Failed to fetch strip');
         return response.json();
       })
       .then(function (data) {
         displayStrip(data);
+        randomBtn.disabled = false;
+        dailyBtn.disabled = false;
       })
       .catch(function () {
+        clearTimeout(timeoutId);
         if (retries > 0) {
-          setTimeout(function () { fetchStrip(url, retries - 1); }, 1500);
+          setTimeout(function () { fetchStrip(url, retries - 1); }, 2000);
           return;
         }
         stripLoading.hidden = true;
         stripError.hidden = false;
         stripError.textContent = 'Failed to load comic strip. Please try again.';
-      })
-      .finally(function () {
         randomBtn.disabled = false;
         dailyBtn.disabled = false;
       });
