@@ -167,7 +167,8 @@
     updateFavButton();
   }
 
-  function fetchStrip(url) {
+  function fetchStrip(url, retries) {
+    if (retries === undefined) retries = 2;
     randomBtn.disabled = true;
     dailyBtn.disabled = true;
     stripLoading.hidden = false;
@@ -184,6 +185,10 @@
         displayStrip(data);
       })
       .catch(function () {
+        if (retries > 0) {
+          setTimeout(function () { fetchStrip(url, retries - 1); }, 1500);
+          return;
+        }
         stripLoading.hidden = true;
         stripError.hidden = false;
         stripError.textContent = 'Failed to load comic strip. Please try again.';
