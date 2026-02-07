@@ -10,9 +10,6 @@
   var dailyBtn = document.getElementById('daily-btn');
   var favBtn = document.getElementById('fav-btn');
   var shareBtn = document.getElementById('share-btn');
-  var searchInput = document.getElementById('search-input');
-  var searchBtn = document.getElementById('search-btn');
-  var searchResults = document.getElementById('search-results');
   var favoritesSection = document.getElementById('favorites-section');
   var favoritesList = document.getElementById('favorites-list');
   var showFavBtn = document.getElementById('show-fav-btn');
@@ -230,71 +227,11 @@
   });
 
   // =====================
-  // Search (quotes)
-  // =====================
-
-  function performSearch() {
-    var q = searchInput.value.trim();
-    if (!q) {
-      searchResults.hidden = true;
-      return;
-    }
-
-    fetch('/api/quotes/search?q=' + encodeURIComponent(q))
-      .then(function (response) {
-        if (!response.ok) throw new Error('Search failed');
-        return response.json();
-      })
-      .then(function (data) {
-        searchResults.hidden = false;
-        searchResults.innerHTML = '';
-
-        var heading = document.createElement('h3');
-        heading.textContent = data.count + ' result' + (data.count !== 1 ? 's' : '') + ' for "' + q + '"';
-        searchResults.appendChild(heading);
-
-        if (data.count === 0) return;
-
-        data.quotes.forEach(function (quote) {
-          var item = document.createElement('div');
-          item.className = 'search-result-item';
-
-          var qDiv = document.createElement('div');
-          qDiv.className = 'result-quote';
-          qDiv.textContent = '"' + quote.quote + '"';
-          item.appendChild(qDiv);
-
-          var cDiv = document.createElement('div');
-          cDiv.className = 'result-character';
-          cDiv.textContent = '\u2014 ' + quote.character;
-          item.appendChild(cDiv);
-
-          searchResults.appendChild(item);
-        });
-      })
-      .catch(function () {
-        searchResults.hidden = false;
-        searchResults.innerHTML = '<h3>Search failed. Please try again.</h3>';
-      });
-  }
-
-  searchBtn.addEventListener('click', performSearch);
-  searchInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      performSearch();
-    }
-  });
-
-  // =====================
   // Keyboard Shortcuts
   // =====================
 
   document.addEventListener('keydown', function (e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      if (e.key === 'Escape') {
-        e.target.blur();
-      }
       return;
     }
 
@@ -317,10 +254,6 @@
       case 'D':
         e.preventDefault();
         toggleTheme();
-        break;
-      case '/':
-        e.preventDefault();
-        searchInput.focus();
         break;
     }
   });
