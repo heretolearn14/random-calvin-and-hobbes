@@ -269,9 +269,32 @@
   });
 
   // =====================
+  // Snowfall
+  // =====================
+
+  function createSnowfall() {
+    var container = document.getElementById('snowfall');
+    if (!container) return;
+    var flakes = ['\u2744', '\u2745', '\u2746', '\u00B7', '\u2022'];
+    var count = 50;
+
+    for (var i = 0; i < count; i++) {
+      var flake = document.createElement('span');
+      flake.className = 'snowflake';
+      flake.textContent = flakes[Math.floor(Math.random() * flakes.length)];
+      flake.style.left = Math.random() * 100 + '%';
+      flake.style.fontSize = (0.5 + Math.random() * 1.2) + 'rem';
+      flake.style.animationDuration = (6 + Math.random() * 10) + 's';
+      flake.style.animationDelay = (Math.random() * -15) + 's';
+      container.appendChild(flake);
+    }
+  }
+
+  // =====================
   // Init
   // =====================
 
+  createSnowfall();
   renderFavorites();
   fetchRandomStrip();
 })();
