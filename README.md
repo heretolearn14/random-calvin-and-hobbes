@@ -2,7 +2,7 @@
 
 A web app that displays random Calvin and Hobbes comic strips, fetched from GoComics. Features a winter snow theme, dark mode, favorites, and keyboard shortcuts.
 
-**Live:** [stellular-bombolone-cb7f3f.netlify.app](https://stellular-bombolone-cb7f3f.netlify.app)
+**Live:** [calhob.netlify.app](https://calhob.netlify.app)
 
 ## Features
 
