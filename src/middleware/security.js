@@ -21,7 +21,7 @@ function securityHeaders(req, res, next) {
   // Content Security Policy
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://assets.amuniversal.com; font-src 'self'"
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://assets.amuniversal.com https://featureassets.gocomics.com; font-src 'self'"
   );
 
   // Prevent browsers from caching sensitive data
